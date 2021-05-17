@@ -102,7 +102,7 @@ void const_bc(double *u)
 	}
 }
 
-void point_source(double *s)
+void point_source(double *d)
 {
 	const double G = 1.0;
 #       pragma omp parallel for collapse(2)	
@@ -146,7 +146,6 @@ double SOR_parallel(double omega)
 			       	      u[N*(i+1)+(j+2)] -4.0*u[N*(i+1)+(j+1)] - dx*dy*d[N_ln*i+j]);
 				u[N*(i+1)+(j+1)] += 0.25*omega*psy;
 				tmp_residual += fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
-				//err[N_ln*i+j] = fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
 			}
 #                       pragma omp critical
 			residual += tmp_residual;
