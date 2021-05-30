@@ -1,5 +1,5 @@
 /*
- Parallel Computation SOR
+ Poisson solver with CG, SOR
  Compile with : g++ -fopenmp main.cpp
 */
 #include <cstdio>
@@ -8,73 +8,68 @@
 #include <omp.h>
 #include <time.h>
 
-const int Nthread = 8;
+#include "operator.cpp"
+#include "init.cpp"
 
-const int N_ln   = 64;                  // number of computing cell in 1D
+// User define constants
+const int method = 1;                   // 0 = SOR; 1 = CG
+const int Nthread = 8;			// MPI parallel with N threads
+const int N_ln   = 128;                 // grid size
+const double criteria = 1.0e-14;        // convergence criteria
+//
+
+// constants
 const double Lx   = 1.0;            	// x computational domain size
 const double Ly   = 1.0;            	// y computational domain size
 const int ghost = 1;            	// ghost zones
 const int N = N_ln + 2*ghost;  	 	// total number of cells including ghost zones
-const double D   = 1.0;             	// diffusion coefficient
 const double u0  = 1.0;             	// background density
-const double amp = 1.0;             	// sinusoidal amplitude
-const double criteria = 1.0e-14;     	// convergence criteria
 const double omega = 4.0/(2.0 + sqrt(4.0 - \
 		(2.0*cos(M_PI/N_ln))*(2.0*cos(M_PI/N_ln)) ));
 int itr = 0;				// count iteration
+double bb = 0.0;			// criteria standard
+
 // derived constants
 const double dx = Lx/N_ln;          	// spatial resolution
 const double dy = Ly/N_ln;
-const double dt = dx*dy/(4*D);      	// CLF stability
 
-// Pointer for potential
-double *u;				// potential
-double *d;				// density
-double *x, *y;				// coordinates
+// pointer
+double *u = new double[N*N];		// potential
+double *d = new double[N_ln*N_ln];	// density
+double *r = new double[N_ln*N_ln];	// residual vector 
+double *p = new double[N*N];		// search direction
+double *Ap = new double[N_ln*N_ln];	// <A|p>
 
 // function prototypes
-void const_bc(double *);
-void point_source(double *);		// 4 grid in middle has density		
-double SOR_parallel(double);		
-
-// function for memories reference
-void *memalloc(size_t n)
-{
-	void *v;
-
-	if ((v = malloc(n)) == NULL) {
-		printf("Not enough memory!!\n");
-		exit(1);
-	}
-	return v;
-}
-
+double SOR(double);		
+double CG();
 
 int main( int argc, char *argv[] )
 {
 
-	// distribute memory
-	x = (double*)memalloc(N_ln*sizeof(double));
-	y = (double*)memalloc(N_ln*sizeof(double));
-	u = (double*)memalloc((N*N)*sizeof(double));
-	d = (double*)memalloc((N_ln*N_ln)*sizeof(double));
-	
 	// initial condition
-	const_bc(u);
-	point_source(d);
+	const_bc(u,u0,N);
+	point_source(d,N_ln);
+	CG_init(u,d,r,p,bb,dx,dy,N,N_ln);
 
 	// start evolution (selected method)
-	double residual = 1.0;
+	double error = 1.0;
 	struct timespec start, end;
 	clock_gettime(CLOCK_REALTIME, &start);
-	while (residual >= criteria){ 		
-		residual = SOR_parallel(omega);
+
+	while (error >= criteria){
+		if (method == 0)
+			error = SOR(omega);
+		else
+			error = CG(); 		
+
 		itr ++;
 		if(itr >= 20000) {
 			printf("Convergence Failure.\n");
 			break;
 			} 
 	}
+
 	clock_gettime(CLOCK_REALTIME, &end);
 
 	// calculate wallclock time
@@ -82,43 +77,36 @@ int main( int argc, char *argv[] )
 	long nanoseconds = end.tv_nsec - start.tv_nsec;
 	double time = seconds + nanoseconds*1e-9;
 
-	printf("CPU Parallel with %d threads.\n",Nthread);
+	if (method == 0) {
+		printf("SOR Poisson Solver\n");
+		printf("----------------------------------\n");
+		printf("opt omega = %f\n",omega);
+	}
+	else{
+		 printf("Conjugate Gradient Poisson Solver\n"); 
+		 printf("----------------------------------\n");
+	}
 	printf("N = %d\n",N_ln);
-	printf("opt omega = %f\n",omega);
-	printf("Iteration = %d, residual = %1.3e\n",itr,residual);
+	printf("CPU Parallel with %d threads.\n",Nthread);
+	printf("Iteration = %d, error = %1.3e\n",itr,error);
 	printf("Iteration Wallclock time : %f s \n",time);
 
-	free(x);free(y);free(u);free(d);
+	delete []u;
+	delete []d;
+	delete []r;
+	delete []p;
+	delete []Ap;
+	
 	return 0;
 }
 
-void const_bc(double *u)
-{
-#	pragma omp parallel for collapse(2)	
-	for (int i=0;i<N;i++){
-		for (int j=0;j<N;j++){
-			u[N*i+j] = u0;
-		}
-	}
-}
 
-void point_source(double *d)
-{
-	const double G = 1.0;
-#       pragma omp parallel for collapse(2)	
-	for(int i=N_ln/2-1;i <= N_ln/2;i++){
-		for(int j=N_ln/2-1;j <= N_ln/2;j++){
-			d[N_ln*i+j] = 4*M_PI*G*25.0;
-		}
-	}
-}
-
-
-double SOR_parallel(double omega)
+double SOR(double omega)
 {
 	double residual = 0.0;
 	omp_set_num_threads(Nthread);
 #	pragma omp parallel
+
 	{	
 //	const int tid = omp_get_thread_num();
 //	const int nt  = omp_get_num_threads();
@@ -155,4 +143,39 @@ double SOR_parallel(double omega)
 	}
 
 	return residual;
+}
+
+double CG()
+{
+	double pAp = 0.0;	// p*A*p
+	double alpha = 0.0;	// for update x (u) 
+	double beta = 0.0;	// for update pk (search direction)
+	double rr0 = 0.0; 	// old r*r
+	double rr1 = 0.0;	// new r*r
+	double err = 0.0;
+		
+	rr0 = inner_product(r,r,0,N,N_ln);		
+	laplacian(Ap,p,dx,dy,N,N_ln);			// A.p
+	pAp = inner_product(p,Ap,1,N,N_ln);		// pAp	
+	alpha = rr0/pAp;
+
+#	pragma omp parallel for
+	for(int i=0;i<N_ln;i++)
+        for(int j=0;j<N_ln;j++){
+                u[N*(i+1)+(j+1)] += alpha*p[N*(i+1)+(j+1)];	// update u
+                r[N_ln*i+j] += -alpha*Ap[N_ln*i+j];            // update r
+        }
+	
+	rr1 = inner_product(r,r,0,N,N_ln);
+	beta = rr1/rr0;
+#       pragma omp parallel for
+	for(int i=0;i<N_ln;i++)
+        for(int j=0;j<N_ln;j++){
+		p[N*(i+1)+(j+1)] = r[N_ln*i+j] + beta*p[N*(i+1)+(j+1)];
+	}
+	rr0 = rr1;
+	
+	err = sqrt(rr1/bb);
+		
+	return err ;
 }
