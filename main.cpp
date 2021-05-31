@@ -104,6 +104,7 @@ int main( int argc, char *argv[] )
 double SOR(double omega)
 {
 	double residual = 0.0;
+	double dd = 0.0;
 	omp_set_num_threads(Nthread);
 #	pragma omp parallel
 
@@ -114,14 +115,18 @@ double SOR(double omega)
 #		pragma omp for  
 		for(int i=0;i<N_ln;i++){
 			double tmp_residual = 0.0;
+			double tmp_d = 0.0;
 			for(int j=i%2;j<N_ln;j+=2){
 				double psy = (u[N*i+(j+1)] + u[N*(i+2)+(j+1)] + u[N*(i+1)+j] +\
 			      	      u[N*(i+1)+(j+2)] -4.0*u[N*(i+1)+(j+1)] - dx*dy*d[N_ln*i+j]);
 				u[N*(i+1)+(j+1)] += 0.25*omega*psy;
-				tmp_residual += fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
+				//tmp_residual += fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
+				tmp_residual += fabs(dx*dy*psy);
+				tmp_d += fabs(d[N_ln*i+j]);
 			}
 #			pragma omp critical
 			residual += tmp_residual;
+			dd += tmp_d;
 //			printf( "loop %d is computed by thread %d/%d\n", itr, tid, nt );
 		}
 
@@ -129,18 +134,24 @@ double SOR(double omega)
 #		pragma omp for
 		for(int i=0;i<N_ln;i++){
 			double tmp_residual = 0.0;
+			double tmp_d = 0.0;
 			for(int j=(i+1)%2;j<N_ln;j+=2){
 				double psy = (u[N*i+(j+1)] + u[N*(i+2)+(j+1)] + u[N*(i+1)+j] +\
 			       	      u[N*(i+1)+(j+2)] -4.0*u[N*(i+1)+(j+1)] - dx*dy*d[N_ln*i+j]);
 				u[N*(i+1)+(j+1)] += 0.25*omega*psy;
-				tmp_residual += fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
+				//tmp_residual += fabs(psy/u[N*(i+1)+(j+1)])/(N_ln*N_ln);
+				tmp_residual += fabs(dx*dy*psy);
+				tmp_d += fabs(d[N_ln*i+j]);
 			}
 #                       pragma omp critical
 			residual += tmp_residual;
+			dd += tmp_d;
 //			printf( "loop %d is computed by thread %d/%d\n", itr, tid, nt );
 		}
 
 	}
+	
+	residual = residual/dd;
 
 	return residual;
 }
@@ -174,8 +185,11 @@ double CG()
 		p[N*(i+1)+(j+1)] = r[N_ln*i+j] + beta*p[N*(i+1)+(j+1)];
 	}
 	rr0 = rr1;
+	//printf("err = %2.15f\n",rr1);
 	
 	err = sqrt(rr1/bb);
 		
 	return err ;
 }
+
+
