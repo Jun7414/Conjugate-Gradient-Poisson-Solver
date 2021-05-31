@@ -7,6 +7,8 @@
 #include <cmath>
 #include <omp.h>
 #include <time.h>
+#include <iostream>
+#include <fstream>
 
 #include "operator.cpp"
 #include "init.cpp"
@@ -76,6 +78,20 @@ int main( int argc, char *argv[] )
 	long seconds = end.tv_sec - start.tv_sec;
 	long nanoseconds = end.tv_nsec - start.tv_nsec;
 	double time = seconds + nanoseconds*1e-9;
+	
+	// generate final result data for plotting
+        std::ofstream ofs;
+        ofs.open("output.txt");
+        if (!ofs.is_open()) {
+                printf("Failed to open file.\n");
+        } else {
+                for(int i=0; i<N; i++)
+                for(int j=0; j<N; j++){
+                        ofs << u[N*i+j] << " ";
+
+                }
+                ofs.close();
+        }	
 
 	if (method == 0) {
 		printf("SOR Poisson Solver\n");
