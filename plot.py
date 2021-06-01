@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # Change N_ln according to main.cpp for plotting #
 ##################################################
 
-N_ln   = 128   # number of computing cell in 1D  
+N_ln   = 1024   # number of computing cell in 1D  
 
 
 Lx   = 1.0   # x computational domain size
