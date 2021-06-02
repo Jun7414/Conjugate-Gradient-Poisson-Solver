@@ -1,7 +1,7 @@
 double CG()
 {
 	double pAp = 0.0;	// p*A*p
-	double alpha = 0.0; // for update x (u)
+	double alpha = 0.0;	// for update x (u)
 	double beta = 0.0;	// for update pk (search direction)
 	double rr0 = 0.0;	// old r*r
 	double rr1 = 0.0;	// new r*r
@@ -9,7 +9,7 @@ double CG()
 
 	rr0 = inner_product(r, r, 0, N, N_ln);
 	laplacian(Ap, p, dx, dy, N, N_ln);		// A.p
-	pAp = inner_product(p, Ap, 1, N, N_ln); // pAp
+	pAp = inner_product(p, Ap, 1, N, N_ln); 	// pAp
 	alpha = rr0 / pAp;
 
 	#pragma omp parallel for
@@ -17,8 +17,8 @@ double CG()
 	{
 		for (int j = 0; j < N_ln; j++)
 		{
-			u[N * (i + 1) + (j + 1)] += alpha * p[N * (i + 1) + (j + 1)]; // update u
-			r[N_ln * i + j] += -alpha * Ap[N_ln * i + j];				  // update r
+			u[N * (i + 1) + (j + 1)] += alpha * p[N * (i + 1) + (j + 1)]; 		// update u
+			r[N_ln * i + j] += -alpha * Ap[N_ln * i + j];				// update r
 		}
 	}
 
