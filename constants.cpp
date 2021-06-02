@@ -1,6 +1,10 @@
 // User define constants
 <<<<<<< HEAD
+<<<<<<< HEAD
 const int method = 0;                   // 0 = SOR; 1 = CG
+=======
+const int method = 1;                   // 0 = SOR; 1 = CG
+>>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0
 =======
 const int method = 1;                   // 0 = SOR; 1 = CG
 >>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0
@@ -30,7 +34,11 @@ double *d = new double[N_ln*N_ln];	// density
 double *r = new double[N_ln*N_ln];	// residual vector 
 double *p = new double[N*N];		// search direction
 <<<<<<< HEAD
+<<<<<<< HEAD
 double *Ap = new double[N_ln*N_ln];	// <A|p>
+=======
+double *Ap = new double[N_ln*N_ln];	// <A|p>
+>>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0
 =======
 double *Ap = new double[N_ln*N_ln];	// <A|p>
 >>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0

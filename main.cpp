@@ -24,11 +24,11 @@ int main( int argc, char *argv[] )
 
 	printf("itr	error\n");
 	printf("--------------\n");
-	
+
 	// start evolution (selected method)
 	double error = 1.0;
 	//double start, end, time;
-	//start = omp_get_wtime(); 
+	//start = omp_get_wtime();
 	struct timespec start, end;
 	clock_gettime(CLOCK_REALTIME, &start);
 
@@ -36,22 +36,18 @@ int main( int argc, char *argv[] )
 		if (method == 0)
 			error = SOR(omega);
 		else
-			error = CG(); 		
+			error = CG();
 
 		itr ++;
 		if(itr >= 20000) {
 			printf("Convergence Failure.\n");
 			break;
-<<<<<<< HEAD
 		}
-		
+
 		if (itr%100 ==0 )
 		printf("%d	%1.3e\n",itr,error);
-=======
-		} 
->>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0
 	}
-	//end = omp_get_wtime(); 
+	//end = omp_get_wtime();
 	//time = end - start;
 	clock_gettime(CLOCK_REALTIME, &end);
 
@@ -59,7 +55,7 @@ int main( int argc, char *argv[] )
 	long seconds = end.tv_sec - start.tv_sec;
 	long nanoseconds = end.tv_nsec - start.tv_nsec;
 	double time = seconds + nanoseconds*1e-9;
-	
+
 	// generate final result data for plotting
         std::ofstream ofs;
         ofs.open("output.txt");
@@ -72,7 +68,7 @@ int main( int argc, char *argv[] )
 
                 }
                 ofs.close();
-        }	
+        }
 
 	if (method == 0) {
 		printf("\nSOR Poisson Solver\n");
@@ -80,7 +76,7 @@ int main( int argc, char *argv[] )
 		printf("opt omega = %f\n",omega);
 	}
 	else{
-		 printf("\nConjugate Gradient Poisson Solver\n"); 
+		 printf("\nConjugate Gradient Poisson Solver\n");
 		 printf("----------------------------------\n");
 	}
 	printf("N = %d\n",N_ln);
@@ -93,6 +89,6 @@ int main( int argc, char *argv[] )
 	delete []r;
 	delete []p;
 	delete []Ap;
-	
+
 	return 0;
 }
