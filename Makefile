@@ -1,2 +1,2 @@
 all:
-	g++-11 -feopnmp main.cpp -o main
+	g++-11 -fopenmp main.cpp -o main
