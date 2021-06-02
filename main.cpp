@@ -42,10 +42,14 @@ int main( int argc, char *argv[] )
 		if(itr >= 20000) {
 			printf("Convergence Failure.\n");
 			break;
+<<<<<<< HEAD
 		}
 		
 		if (itr%100 ==0 )
 		printf("%d	%1.3e\n",itr,error);
+=======
+		} 
+>>>>>>> 750afc82de762ce43d0a054d7b11367b83e097b0
 	}
 	//end = omp_get_wtime(); 
 	//time = end - start;
