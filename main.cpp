@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
 		printf("Iteration = %d, error = %1.3e\n", itr, error);
 		printf("Iteration Wallclock time : %f s \n", time);
 	}
+	
 	delete[] u;
 	delete[] d;
 	delete[] r;
