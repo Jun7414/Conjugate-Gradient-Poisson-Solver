@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <omp.h>
-#include <time.h>
 #include <iostream>
 #include <fstream>
 #include <getopt.h>
@@ -42,7 +41,7 @@ int main(int argc, char *argv[])
 	int c = 0, myIndex = 0;
 	bool optionSOR = false, optionCG = false;
 	double error = 1.0;
-	struct timespec start, end;
+	double start, end, time; 
 
 	while ( ( c = getopt_long( argc, argv, "s:c:", long_options, &myIndex) ) != -1)
 	{
@@ -68,8 +67,7 @@ int main(int argc, char *argv[])
 		printf("itr	error\n");
 		printf("--------------\n");
 		
-		clock_gettime(CLOCK_REALTIME, &start);
-
+		start = omp_get_wtime();
 		while (error > criteria)
 		{
 			error = SOR(omega);
@@ -85,12 +83,8 @@ int main(int argc, char *argv[])
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
-		clock_gettime(CLOCK_REALTIME, &end);
-
-		// calculate wallclock time
-		long seconds = end.tv_sec - start.tv_sec;
-		long nanoseconds = end.tv_nsec - start.tv_nsec;
-		double time = seconds + nanoseconds * 1e-9;
+		end = omp_get_wtime();
+		time = end - start;
 
 		writeToFile(u);
 
@@ -111,8 +105,8 @@ int main(int argc, char *argv[])
 		
 		printf("itr	error\n");
 		printf("--------------\n");
-		clock_gettime(CLOCK_REALTIME, &start);
-
+		
+		start = omp_get_wtime();
 		while (error > criteria)
 		{
 			error = CG();
@@ -128,12 +122,8 @@ int main(int argc, char *argv[])
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
-		clock_gettime(CLOCK_REALTIME, &end);
-
-		// calculate wallclock time
-		long seconds = end.tv_sec - start.tv_sec;
-		long nanoseconds = end.tv_nsec - start.tv_nsec;
-		double time = seconds + nanoseconds * 1e-9;
+		end = omp_get_wtime();
+                time = end - start;
 
 		writeToFile(u);
 

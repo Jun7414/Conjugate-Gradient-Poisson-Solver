@@ -3,7 +3,7 @@ double inner_product(double *a, double *b, int type, int N, int N_ln)
 {
     double kk = 0.0;
     if (type == 0)
-    { // for N_ln^2 * N_ln^2
+    {	// for N_ln^2 * N_ln^2
         #pragma omp parallel for reduction(+ : kk)
         for (int i = 0; i < N_ln * N_ln; i++)
         {
@@ -11,7 +11,7 @@ double inner_product(double *a, double *b, int type, int N, int N_ln)
         }
     }
     else
-    { // for N^2 * N_ln^2
+    {	// for N^2 * N_ln^2
         #pragma omp parallel for reduction(+ : kk)
         for (int i = 0; i < N_ln; i++)
         {
