@@ -37,5 +37,13 @@ void point_source(double *d,int N_ln)
         for(int j=N_ln/2-1;j <= N_ln/2;j++){
                 d[N_ln*i+j] = 4*M_PI*G*5.0;
         }
+
+        // for( int i = 1; i < N_ln; i++ )
+        // {
+        //         for( int j = 1; j < N_ln; j++ )
+        //         {
+        //                 d[N_ln*i+j] = 4*M_PI *
+        //         }
+        // }
         return;
 }
