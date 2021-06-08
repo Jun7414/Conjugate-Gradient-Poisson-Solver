@@ -38,3 +38,30 @@ void laplacian(double *La, double *x, double dx, double dy, int N, int N_ln)
     }
     return;
 }
+
+void YPEAX(double *y, double *x, double a, int N)	// Y += a*X
+{
+    #pragma omp parallel for
+    for (int i = 0; i < N*N; i++){
+        y[i] += a*x[i];
+    }
+
+    return;
+}
+
+void YEAYPX(double *y, double *x, double a, int N, int N_ln)	// Y = a*Y + X
+{
+    #pragma omp parallel for
+    for (int i = 0; i < N_ln; i++)
+    {
+         for (int j = 0; j < N_ln; j++)
+         {
+             y[N * (i + 1) + (j + 1)] = a * y[N * (i + 1) + (j + 1)] + x[N_ln * i + j];
+         }
+    }
+
+    return;
+}
+
+
+
