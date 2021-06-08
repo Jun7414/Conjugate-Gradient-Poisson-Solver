@@ -18,7 +18,7 @@ double CG()
 	rr1 = inner_product(r, r, 0, N, N_ln);
 	beta = rr1 / rr0;
 
-	YEAYPX(p,r,beta,N,N_ln);
+	YEAYPX(p,r,beta,N,N_ln);	// update p
 
 	rr0 = rr1;
 
