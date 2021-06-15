@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import os
+import re
+import argparse
 
 ##################################################
 # Change N_ln according to main.cpp for plotting #
@@ -25,7 +28,12 @@ x   = np.linspace(dx/2, Lx-dx/2, N_ln)
 y   = np.linspace(dy/2, Ly-dy/2, N_ln)
 X , Y = np.meshgrid(x,y)
 
-f = open('output.txt','r')
+parser = argparse.ArgumentParser( description='Plot density slices for the test' )
+parser.add_argument( 'file', type=str, help='filename' )
+args = parser.parse_args()
+filename = args.file
+
+f = open( filename,'r')
 data = f.read().split()
 f.close()
 coor = np.loadtxt(data)
@@ -33,7 +41,6 @@ U = np.empty((N,N))
 for i in range(N):
     U[i,:] = coor[N*i:N*(i+1)]
 print(np.shape(U))
-
 # plot
 fig = plt.figure(figsize=(10,8), dpi=100)
 ax = fig.add_subplot(111)
@@ -42,4 +49,5 @@ plt.pcolormesh(X, Y, U[ghost : -ghost,ghost : -ghost], cmap='viridis', edgecolor
 plt.colorbar()
 ax.set_xlabel( 'X',fontsize=14 )
 ax.set_ylabel( 'Y',fontsize=14 )
+plt.savefig("point_source.jpg", format = "jpg")
 plt.show()

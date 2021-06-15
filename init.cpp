@@ -8,13 +8,13 @@ void CG_init(double *x, double *b, double *r, double *p, double &bb,
     bb = inner_product(b, b, 0, N, N_ln);
     bb += 1e-15; // avoid being 0 in rr/bb
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < N * N; i++)
     {
         p[i] = 0.0;
     }
 
-    #pragma omp parallel for
+#pragma omp parallel for collapse(2)
     for (int i = 0; i < N_ln; i++)
     {
         for (int j = 0; j < N_ln; j++)
@@ -30,11 +30,55 @@ void CG_init(double *x, double *b, double *r, double *p, double &bb,
 
 void const_bc(double *u, double u0, int N)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < N * N; i++)
+#pragma omp parallel for
+    
+    /*for (int i = 0; i < N; i++) // Work
+    {
+        for( int j = 0; j < N; j++ )
+        {
+            if( i == 0 || i == N - 1 || j == 0 || j == N-1 )
+            {
+                u[i * N + j] = sin(M_PI * i * j);
+            }
+            else
+            {
+                u[i * N + j] = -( M_PI * M_PI * ( i * i + j * j ) * sin( M_PI * i * j ));
+            }
+        }
+    }
+
+    for (int i = 0; i < N; i++) // not sure
+    {
+        for (int j = 0; j < N; j++)
+        {
+            u[i * N + j] = i * sin(5.0 * M_PI * j) + exp(-((i - 0.5) * (i - 0.5) + (j - 0.5) * (j - 0.5)) / 0.02);
+        }
+    }*/
+
+    /*
+    for (int i = 0; i < N; i++) // work
+    {
+        for (int j = 0; j < N; j++)
+        {
+
+            if (i == 0 || i == N - 1 || j == 0 || j == N - 1)
+            {
+                u[i * N + j] = 1.0;
+            }
+            else
+            {
+                u[i * N + j] = 0.0;
+            }
+        }
+    }
+    */
+
+    
+    for (int i = 0; i < N * N; i++) // Work
     {
         u[i] = u0;
     }
+    
 
     return;
 }
@@ -42,7 +86,8 @@ void const_bc(double *u, double u0, int N)
 void point_source(double *d, int N_ln)
 {
     const double G = 1.0;
-    #pragma omp parallel for collapse(2)
+
+#pragma omp parallel for collapse(2)
     for (int i = N_ln / 2 - 1; i <= N_ln / 2; i++)
     {
         for (int j = N_ln / 2 - 1; j <= N_ln / 2; j++)

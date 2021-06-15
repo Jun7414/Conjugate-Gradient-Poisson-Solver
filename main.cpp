@@ -1,5 +1,6 @@
 /*
  Poisson solver with CG, SOR
+ Before Compile : make clean
  Compile with : g++ -fopenmp main.cpp -o main
  Run with ./main --[Method] [Num of Threads]
  Exmaple : Run CG with 4 threads ./main --CG 4
@@ -17,10 +18,21 @@
 #include "sor.cpp"
 #include "cg.cpp"
 
-void writeToFile(double *u)
+void writeToFile(double *u, int itr)
 {
+	char filename[64];
 	std::ofstream ofs;
-	ofs.open("output.txt");
+
+	if( itr < 10 )
+	{
+		sprintf(filename, "./output/output_0%d.txt", itr);
+	}
+	else
+	{
+		sprintf(filename, "./output/output_%d.txt", itr);
+	}
+	
+	ofs.open( filename );
 	if (!ofs.is_open())
 	{
 		printf("Failed to open file.\n");
@@ -43,27 +55,32 @@ int main(int argc, char *argv[])
 	double error = 1.0;
 	double start, end, time; 
 
-	while ( ( c = getopt_long( argc, argv, "s:c:", long_options, &myIndex) ) != -1)
+	while ( ( c = getopt_long( argc, argv, "s:c:n:", long_options, &myIndex) ) != -1)
 	{
 		if (c == 's')
 		{
 			optionSOR = true;
 			Nthread = atoi(optarg);
-			break;
 		}
 
 		if (c == 'c')
 		{
 			optionCG = true;
 			Nthread = atoi(optarg);
-			break;
+		}
+
+		if( c == 'n')
+		{
+			N_ln = atoi(optarg);
 		}
 	}
 
+	const_bc(u, u0, N);
+	point_source(d, N_ln);
+	writeToFile(u, itr / 100);
+	
 	if (optionSOR)
 	{
-		const_bc(u, u0, N);
-		point_source(d, N_ln);
 		printf("itr	error\n");
 		printf("--------------\n");
 		
@@ -80,13 +97,14 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
+				writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
 		end = omp_get_wtime();
 		time = end - start;
 
-		writeToFile(u);
+		writeToFile(u, itr / 100 + 1);
 
 		printf("\nSOR Poisson Solver\n");
 		printf("----------------------------------\n");
@@ -99,9 +117,9 @@ int main(int argc, char *argv[])
 
 	if (optionCG)
 	{
-		const_bc(u, u0, N);
-		point_source(d, N_ln);
+		
 		CG_init(u, d, r, p, bb, dx, dy, N, N_ln);
+
 		
 		printf("itr	error\n");
 		printf("--------------\n");
@@ -119,13 +137,14 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
+				writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
 		end = omp_get_wtime();
                 time = end - start;
 
-		writeToFile(u);
+		writeToFile(u, itr / 100 + 1);
 
 		printf("\nConjugate Gradient Poisson Solver\n");
 		printf("----------------------------------\n");
