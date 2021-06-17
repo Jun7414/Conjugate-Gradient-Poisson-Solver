@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 				printf("Convergence Failure.\n");
 				break;
 			}
-
+			
 			if (itr % 100 == 0)
 			{
 				writeToFile(u, itr / 100);
@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 		printf("--------------\n");
 		
 		start = omp_get_wtime();
+		
 		while (error > criteria)
 		{
 			error = CG();
@@ -143,7 +144,7 @@ int main(int argc, char *argv[])
 		}
 		end = omp_get_wtime();
                 time = end - start;
-
+		
 		writeToFile(u, itr / 100 + 1);
 
 		printf("\nConjugate Gradient Poisson Solver\n");

@@ -74,7 +74,7 @@ void const_bc(double *u, double u0, int N)
     }
 */
    
-    // 3 side same 1 side different
+/*    // 3 side same 1 side different
     for (int i = 0; i < N; i++) // work
     {
         for (int j = 0; j < N; j++)
@@ -90,13 +90,13 @@ void const_bc(double *u, double u0, int N)
             }
         }
     }
-
-/*    
+*/
+    
     for (int i = 0; i < N * N; i++) // Work
     {
         u[i] = u0;
     }
-*/    
+    
     return;
 }
 
@@ -105,7 +105,7 @@ void point_source(double *d, int N_ln)
     const double G = 1.0;
 
 #pragma omp parallel for collapse(2)
-/*
+
     // point source 1 (middle)
     for (int i = N_ln / 2 - 1; i <= N_ln / 2; i++)
     {
@@ -115,8 +115,8 @@ void point_source(double *d, int N_ln)
        
         }
     }
-*/
-    // point source 2 (4th quadrant)
+
+/*    // point source 2 (4th quadrant)
     for (int i = N_ln / 4 - 1; i <= N_ln / 4; i++)
     {
         for (int j = 3*N_ln / 4 - 1; j <= 3*N_ln / 4; j++)
@@ -125,14 +125,15 @@ void point_source(double *d, int N_ln)
 
         }
     }
-
-    /*for( int i = 1; i < N_ln; i++ )
+*/
+/*    for( int i = 1; i < N_ln; i++ )
     {
         for( int j = 0; j < N_ln; j++ )
         {
             d[i * N_ln + j] = -( M_PI * M_PI * ( i * i + j * j ) * sin( M_PI * i * j ));
         }
-    }*/
+    }
+*/
 /*
     // back ground density only  (for bc test)
     for (int i = 0; i < N_ln; i++)
