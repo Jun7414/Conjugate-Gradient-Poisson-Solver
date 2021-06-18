@@ -18,6 +18,7 @@
 #include "sor.cpp"
 #include "cg.cpp"
 
+using namespace std;
 void writeToFile(double *u, int itr)
 {
 	char filename[64];
@@ -51,6 +52,7 @@ void writeToFile(double *u, int itr)
 int main(int argc, char *argv[])
 {
 	int c = 0, myIndex = 0;
+	
 	bool optionSOR = false, optionCG = false;
 	double error = 1.0;
 	double start, end, time; 
@@ -71,10 +73,12 @@ int main(int argc, char *argv[])
 
 		if( c == 'n')
 		{
-			N_ln = atoi(optarg);
+			char *endptr;
+			N_ln = strtol(optarg, &endptr, 10);
 		}
 	}
 
+	omp_set_num_threads(Nthread);
 	const_bc(u, u0, N);
 	point_source(d, N_ln);
 	//writeToFile(u, itr / 100);
@@ -117,7 +121,6 @@ int main(int argc, char *argv[])
 
 	if (optionCG)
 	{
-		
 		CG_init(u, d, r, p, bb, dx, dy, N, N_ln);
 		printf("itr	error\n");
 		printf("--------------\n");
