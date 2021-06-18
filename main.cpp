@@ -140,14 +140,10 @@ int main(int argc, char *argv[])
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
-		end = omp_get_wtime();
-<<<<<<< HEAD
-                time = end - start;
 		
-=======
+		end = omp_get_wtime();
         time = end - start;
 
->>>>>>> dev-daniel
 		writeToFile(u, itr / 100 + 1);
 
 		printf("\nConjugate Gradient Poisson Solver\n");
