@@ -73,8 +73,13 @@ void const_bc(double *u, double u0, int N)
         }
     }
 */
+<<<<<<< HEAD
    
 /*    // 3 side same 1 side different
+=======
+/*   
+    // 3 side same 1 side different
+>>>>>>> dev-daniel
     for (int i = 0; i < N; i++) // work
     {
         for (int j = 0; j < N; j++)
@@ -91,12 +96,20 @@ void const_bc(double *u, double u0, int N)
         }
     }
 */
+<<<<<<< HEAD
     
+=======
+  
+>>>>>>> dev-daniel
     for (int i = 0; i < N * N; i++) // Work
     {
         u[i] = u0;
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> dev-daniel
     return;
 }
 
@@ -126,7 +139,11 @@ void point_source(double *d, int N_ln)
         }
     }
 */
+<<<<<<< HEAD
 /*    for( int i = 1; i < N_ln; i++ )
+=======
+    /*for( int i = 1; i < N_ln; i++ )
+>>>>>>> dev-daniel
     {
         for( int j = 0; j < N_ln; j++ )
         {
