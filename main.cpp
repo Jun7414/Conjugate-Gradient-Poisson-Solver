@@ -3,7 +3,7 @@
  Before Compile : make clean
  Compile with : g++ -fopenmp main.cpp -o main
  Run with ./main --[Method] [Num of Threads]
- Exmaple : Run CG with 4 threads ./main --CG 4
+ Exmaple : Run CG with 4 threads ./main --CG 4 -n 1024
 */
 #include <cstdio>
 #include <cstdlib>
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 	const_bc(u, u0, N);
 	point_source(d, N_ln);
-	writeToFile(u, itr / 100);
+	//writeToFile(u, itr / 100);
 	
 	if (optionSOR)
 	{
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
-				writeToFile(u, itr / 100);
+				//writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
@@ -119,8 +119,6 @@ int main(int argc, char *argv[])
 	{
 		
 		CG_init(u, d, r, p, bb, dx, dy, N, N_ln);
-
-		
 		printf("itr	error\n");
 		printf("--------------\n");
 		
@@ -137,12 +135,12 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
-				writeToFile(u, itr / 100);
+				//writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
 		end = omp_get_wtime();
-                time = end - start;
+        time = end - start;
 
 		writeToFile(u, itr / 100 + 1);
 
