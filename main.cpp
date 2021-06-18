@@ -19,12 +19,13 @@
 #include "cg.cpp"
 
 using namespace std;
+
 void writeToFile(double *u, int itr)
 {
 	char filename[64];
 	std::ofstream ofs;
 
-	if( itr < 10 )
+	if (itr < 10)
 	{
 		sprintf(filename, "./output/output_0%d.txt", itr);
 	}
@@ -32,8 +33,8 @@ void writeToFile(double *u, int itr)
 	{
 		sprintf(filename, "./output/output_%d.txt", itr);
 	}
-	
-	ofs.open( filename );
+
+	ofs.open(filename);
 	if (!ofs.is_open())
 	{
 		printf("Failed to open file.\n");
@@ -52,12 +53,12 @@ void writeToFile(double *u, int itr)
 int main(int argc, char *argv[])
 {
 	int c = 0, myIndex = 0;
-	
+
 	bool optionSOR = false, optionCG = false;
 	double error = 1.0;
-	double start, end, time; 
+	double start, end, time;
 
-	while ( ( c = getopt_long( argc, argv, "s:c:n:", long_options, &myIndex) ) != -1)
+	while ((c = getopt_long(argc, argv, "s:c:n:", long_options, &myIndex)) != -1)
 	{
 		if (c == 's')
 		{
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
 			Nthread = atoi(optarg);
 		}
 
-		if( c == 'n')
+		if (c == 'n')
 		{
 			char *endptr;
 			N_ln = strtol(optarg, &endptr, 10);
@@ -79,15 +80,61 @@ int main(int argc, char *argv[])
 	}
 
 	omp_set_num_threads(Nthread);
-	const_bc(u, u0, N);
-	point_source(d, N_ln);
+	//const_bc(u, u0, N);
+	//point_source(d, N_ln);
 	//writeToFile(u, itr / 100);
-	
+	cout << "Boundary Condition : ";
+	if (bc == 0)
+	{
+		const_bc(u, u0, N);
+		cout << "const bc" << endl;
+	}
+	else if (bc == 1)
+	{
+		oneside_bc(u, u0, N);
+		cout << "oneside bc" << endl;
+	}
+	else if (bc == 2)
+	{
+		fourside_bc(u, u0, N);
+		cout << "fourside bc" << endl;
+	}
+	else if (bc == 3)
+	{
+		sin_bc(u, u0, N);
+		cout << "sin bc" << endl;
+	}
+	else
+	{
+		printf("Undefined boundary condition.");
+	}
+
+	cout << "Source : ";
+	if (source == 0)
+	{
+		background_density(d, N_ln);
+		cout << "background density"<< endl;
+	}
+	else if (source == 1)
+	{
+		point_source_middle(d, N_ln);
+		cout << "point source middle density"<< endl;
+	}
+	else if (source == 2)
+	{
+		point_source_4q(d, N_ln);
+		cout << "point source 4q"<< endl;
+	}
+	else
+	{
+		printf("Undefined source.");
+	}
+
 	if (optionSOR)
 	{
 		printf("itr	error\n");
 		printf("--------------\n");
-		
+
 		start = omp_get_wtime();
 		while (error > criteria)
 		{
@@ -98,7 +145,7 @@ int main(int argc, char *argv[])
 				printf("Convergence Failure.\n");
 				break;
 			}
-			
+
 			if (itr % 100 == 0)
 			{
 				//writeToFile(u, itr / 100);
@@ -124,9 +171,9 @@ int main(int argc, char *argv[])
 		CG_init(u, d, r, p, bb, dx, dy, N, N_ln);
 		printf("itr	error\n");
 		printf("--------------\n");
-		
+
 		start = omp_get_wtime();
-		
+
 		while (error > criteria)
 		{
 			error = CG();
@@ -143,9 +190,9 @@ int main(int argc, char *argv[])
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
-		
+
 		end = omp_get_wtime();
-        time = end - start;
+		time = end - start;
 
 		writeToFile(u, itr / 100 + 1);
 
@@ -156,7 +203,7 @@ int main(int argc, char *argv[])
 		printf("Iteration = %d, error = %1.3e\n", itr, error);
 		printf("Iteration Wallclock time : %f s \n", time);
 	}
-	
+
 	delete[] u;
 	delete[] d;
 	delete[] r;
