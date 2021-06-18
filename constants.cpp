@@ -1,10 +1,10 @@
 // User define constants
 //const int method = 1;                 // 0 = SOR; 1 = CG
-int Nthread	 = 8;			// MPI parallel with N threads
-int N_ln	 = 1024;                // grid size
-const int bc	 = 1;                   // 0: const_bc,  1: one_bc, 2:four_bc, 3:sin_bc
-const int source = 0;                   // 0:background density, 1:point source middle, 2: point source 4th quadrant
+int Nthread = 8;			// MPI parallel with N threads
+int N_ln   = 1024; 	                // grid size
 const double criteria = 1.0e-14;        // convergence criteria
+const int bc = 3;			// 0: const_bc,  1: one_bc, 2:four_bc, 3:sin_bc
+const int source = 2;			// 0:background density, 1:point source middle, 2: point source 4th quadrant
 //
 
 // constants
