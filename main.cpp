@@ -12,6 +12,7 @@
 #include "const.cpp"
 #include "operator.cpp"
 #include "init.cpp"
+#include "WriteToFile.cpp"
 
 // constants
 const double Lx   = 1.0;            	// x computational domain size
@@ -43,15 +44,27 @@ int main( int argc, char *argv[] )
 {
 
 	// initial condition
-	const_bc(u,u0,N);
-	point_source(d,N_ln);
+	if(bc == 0)const_bc(u,u0,N);
+	else if(bc == 1)oneside_bc(u,u0,N);
+	else if(bc == 2)fourside_bc(u,u0,N);
+	else if(bc == 3)sin_bc(u,u0,N);
+	else printf("Undefined boundary condition.");
+	
+	if (source == 0) background_density(d,N_ln);
+	else if (source == 1) point_source_middle(d,N_ln);
+	else if(source == 2) point_source_4q(d,N_ln);
+	else printf("Undefined source.");
+
 	CG_init(u,d,r,p,bb,dx,dy,N,N_ln);
 
 	// start evolution (selected method)
 	double error = 1.0;
 	struct timespec start, end;
-	clock_gettime(CLOCK_REALTIME, &start);
 
+	printf("itr     error\n");
+        printf("--------------\n");
+
+	clock_gettime(CLOCK_REALTIME, &start);
 	while (error >= criteria){
 		if (method == 0)
 			error = SOR(omega);
@@ -62,9 +75,11 @@ int main( int argc, char *argv[] )
 		if(itr >= 20000) {
 			printf("Convergence Failure.\n");
 			break;
-			} 
+			}
+		if(itr%100 == 0){
+			printf("%d      %1.3e\n", itr, error);
+		} 
 	}
-
 	clock_gettime(CLOCK_REALTIME, &end);
 
 	// calculate wallclock time
@@ -73,19 +88,9 @@ int main( int argc, char *argv[] )
 	double time = seconds + nanoseconds*1e-9;
 	
 	// generate final result data for plotting
-        std::ofstream ofs;
-        ofs.open("output.txt");
-        if (!ofs.is_open()) {
-                printf("Failed to open file.\n");
-        } else {
-                for(int i=0; i<N; i++)
-                for(int j=0; j<N; j++){
-                        ofs << u[N*i+j] << " ";
+	WriteToFile(u, N);
 
-                }
-                ofs.close();
-        }	
-
+	// print out result
 	if (method == 0) {
 		printf("SOR Poisson Solver\n");
 		printf("----------------------------------\n");
@@ -189,8 +194,6 @@ double CG()
 	YEAYPX(p,r,beta,N,N_ln);        // update p	
 
 	rr0 = rr1;
-	//printf("err = %2.15f\n",rr1);
-	
 	err = sqrt(rr1/bb);
 		
 	return err ;

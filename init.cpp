@@ -29,7 +29,78 @@ void const_bc(double *u, double u0, int N)
         return;
 }
 
-void point_source(double *d,int N_ln)
+void fourside_bc(double *u, double u0, int N)
+{
+#       pragma omp parallel for
+	for (int i = 0; i < N; i++) 
+        for (int j = 0; j < N; j++)
+        {
+
+            if (i == 0 || i == N - 1 || j == 0 || j == N - 1)
+            {
+                u[i * N + j] = 5.0;
+            }
+            else
+            {
+                u[i * N + j] = u0;
+            }
+        }
+}
+
+void oneside_bc(double *u, double u0, int N)
+{
+#       pragma omp parallel for
+	for (int i = 0; i < N; i++) // Work
+        for( int j = 0; j < N; j++ )
+        {
+            if( i == 0 )
+            {
+                double theta = double(j)/double(N);
+                u[i * N + j] = u0 + 5.0 * sin(2*M_PI * theta);
+            }
+            else if (i == N-1)
+            {
+                double theta = double(j)/double(N);
+                u[i * N + j] = u0 + 5.0 * cos(2*M_PI * theta);
+            }
+            else
+            {
+                u[i * N + j] = u0;
+            }
+
+        }
+}
+
+void sin_bc(double *u, double u0, int N)
+{
+#       pragma omp parallel for
+	for (int i = 0; i < N; i++) // Work
+    {
+        for( int j = 0; j < N; j++ )
+        {
+            if( i == 0 )
+            {
+                double theta = double(j)/double(N);
+                u[i * N + j] = u0 + 5.0 * sin(2*M_PI * theta);
+            }
+            else if (i == N-1)
+            {
+                double theta = double(j)/double(N);
+                u[i * N + j] = u0 + 5.0 * cos(2*M_PI * theta);
+            }
+            else
+            {
+                u[i * N + j] = u0;
+            }
+
+        }
+    }
+
+}
+
+
+
+void point_source_middle(double *d,int N_ln)
 {
         const double G = 1.0;
 #       pragma omp parallel for collapse(2)
@@ -38,4 +109,27 @@ void point_source(double *d,int N_ln)
                 d[N_ln*i+j] = 4*M_PI*G*2e5;
         }
         return;
+}
+
+void point_source_4q(double *d,int N_ln)
+{
+        const double G = 1.0;
+#       pragma omp parallel for collapse(2)
+	for (int i = N_ln / 4 - 1; i <= N_ln / 4; i++)
+        for (int j = 3*N_ln / 4 - 1; j <= 3*N_ln / 4; j++)
+        {
+            d[N_ln * i + j] = 4 * M_PI * G * 2e5;
+
+        }
+}
+
+void background_density(double *d,int N_ln)
+{
+        const double G = 1.0;
+#       pragma omp parallel for collapse(2)
+	for (int i = 0; i < N_ln; i++)
+        for (int j = 0; j < N_ln; j++)
+        { 
+	       d[N_ln * i + j] = 1.0;
+  	}
 }

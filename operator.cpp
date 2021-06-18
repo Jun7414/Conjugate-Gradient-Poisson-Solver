@@ -4,11 +4,13 @@ double inner_product(double *a, double *b, int type, int N, int N_ln)
 	omp_set_num_threads(Nthread);
         double kk = 0.0;
         if (type == 0){                         // for N_ln^2 * N_ln^2
-		#pragma omp parallel for reduction(+ : kk)
-		for (int i=0;i<N_ln*N_ln;i++) kk += a[i]*b[i];
+#		pragma omp parallel for reduction(+ : kk)
+		for (int i=0;i<N_ln*N_ln;i++){
+			kk += a[i]*b[i];
+		}
         }
         else{                                   // for N^2 * N_ln^2
-		#pragma omp parallel for reduction(+ : kk)
+#		pragma omp parallel for reduction(+ : kk)
 		for (int i=0;i<N_ln;i++)
                 for (int j=0;j<N_ln;j++){
                          kk += a[N*(i+1)+(j+1)]*b[N_ln*i+j];
@@ -33,7 +35,7 @@ void laplacian(double *La,double *x, double dx, double dy, int N, int N_ln)
 void YPEAX(double *y, double *x, double a, int N) // Y += a*X
 {
     omp_set_num_threads(Nthread);
-#pragma omp parallel for
+#   pragma omp parallel for
     for (int i = 0; i < N * N; i++)
     {
         y[i] += a * x[i];
@@ -45,7 +47,7 @@ void YPEAX(double *y, double *x, double a, int N) // Y += a*X
 void YEAYPX(double *y, double *x, double a, int N, int N_ln) // Y = a*Y + X
 {
     omp_set_num_threads(Nthread);
-#pragma omp parallel for collapse(2)
+#   pragma omp parallel for collapse(2)
     for (int i = 0; i < N_ln; i++)
     {
         for (int j = 0; j < N_ln; j++)
