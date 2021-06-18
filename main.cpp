@@ -1,10 +1,3 @@
-/*
- Poisson solver with CG, SOR
- Before Compile : make clean
- Compile with : g++ -fopenmp main.cpp -o main
- Run with ./main --[Method] [Num of Threads]
- Exmaple : Run CG with 4 threads ./main --CG 4 -n 1024
-*/
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -80,9 +73,6 @@ int main(int argc, char *argv[])
 	}
 
 	omp_set_num_threads(Nthread);
-	//const_bc(u, u0, N);
-	//point_source(d, N_ln);
-	//writeToFile(u, itr / 100);
 	cout << "Boundary Condition : ";
 	if (bc == 0)
 	{
@@ -148,7 +138,6 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
-				//writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
@@ -186,7 +175,6 @@ int main(int argc, char *argv[])
 
 			if (itr % 100 == 0)
 			{
-				//writeToFile(u, itr / 100);
 				printf("%d	%1.3e\n", itr, error);
 			}
 		}
