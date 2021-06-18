@@ -3,6 +3,8 @@
 int Nthread = 8;			// MPI parallel with N threads
 int N_ln   = 1024;                // grid size
 const double criteria = 1.0e-14;        // convergence criteria
+const int bc = 1;
+const int source = 1;
 //
 
 // constants
