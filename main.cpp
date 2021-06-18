@@ -75,8 +75,18 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	const_bc(u, u0, N);
-	point_source(d, N_ln);
+	//const_bc(u, u0, N);
+	//point_source(d, N_ln);
+	if(bc == 0) const_bc(u,u0,N);
+        else if(bc == 1) oneside_bc(u,u0,N);
+        else if(bc == 2) fourside_bc(u,u0,N);
+        else if(bc == 3) sin_bc(u,u0,N);
+        else printf("Undefined boundary condition.");
+
+        if (source == 0) background_density(d,N_ln);
+        else if (source == 1) point_source_middle(d,N_ln);
+        else if(source == 2) point_source_4q(d,N_ln);
+        else printf("Undefined source.");
 	//writeToFile(u, itr / 100);
 	
 	if (optionSOR)
@@ -142,7 +152,7 @@ int main(int argc, char *argv[])
 		}
 		
 		end = omp_get_wtime();
-        time = end - start;
+  	        time = end - start;
 
 		writeToFile(u, itr / 100 + 1);
 
