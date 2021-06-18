@@ -9,6 +9,7 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include "const.cu"
 #include "operator.cu"
@@ -50,7 +51,7 @@ double *Ap = new double[N_ln*N_ln];	// <A|p>
 
 // function prototypes
 double SOR(double);		
-double CG();
+double CG(double *,double *,double *,double *);
 
 int main( int argc, char *argv[] )
 {
@@ -73,17 +74,32 @@ int main( int argc, char *argv[] )
 	double error = 1.0;
 	//struct timespec start, end;
 	clock_t start, end;
+	//float time;
+	//cudaEvent_t start, stop;
 
 	printf("itr     error\n");
         printf("--------------\n");
+	
+	// prepare for GPU 
+	double *d_u, *d_p, *d_r, *d_Ap;
+     	// allocate device memory
+        cudaMalloc( &d_u, (N*N)*sizeof(double) );
+        cudaMalloc( &d_p, (N*N)*sizeof(double) );
+        cudaMalloc( &d_r, (N_ln*N_ln)*sizeof(double) );
+        cudaMalloc( &d_Ap, (N_ln*N_ln)*sizeof(double) );
 
-	//clock_gettime(CLOCK_REALTIME, &start);
+     	// transfer data from CPU to GPU
+        cudaMemcpy( d_u, u, (N*N)*sizeof(double), cudaMemcpyHostToDevice );
+        cudaMemcpy( d_p, p, (N*N)*sizeof(double), cudaMemcpyHostToDevice );
+        cudaMemcpy( d_r, r, (N_ln*N_ln)*sizeof(double), cudaMemcpyHostToDevice );
+        //cudaMemcpy( d_Ap, Ap, (N_ln*N_ln)*sizeof(double), cudaMemcpyHostToDevice );
+
 	start = clock();
 	while (error >= criteria){
 		if (method == 0)
 			error = SOR(omega);
 		else
-			error = CG(); 		
+			error = CG(d_u,d_p,d_r,d_Ap); 		
 
 		itr ++;
 		if(itr >= 20000) {
@@ -95,24 +111,26 @@ int main( int argc, char *argv[] )
 		} 
 	}
 	end = clock();
-	//clock_gettime(CLOCK_REALTIME, &end);
 	double time = double (end - start)/CLOCKS_PER_SEC;
-	// calculate wallclock time
-	//long seconds = end.tv_sec - start.tv_sec;
-	//long nanoseconds = end.tv_nsec - start.tv_nsec;
-	//double time = seconds + nanoseconds*1e-9;
+	
+	// transfer data from GPU to CPU	
+	cudaMemcpy( u, d_u, (N*N)*sizeof(double), cudaMemcpyDeviceToHost );
+	cudaFree( d_u );
+        cudaFree( d_p );
+        cudaFree( d_r );
+        cudaFree( d_Ap );
 	
 	// generate final result data for plotting
 	WriteToFile(u, N);
 
 	// print out result
 	if (method == 0) {
-		printf("SOR Poisson Solver\n");
+		printf("\nSOR Poisson Solver\n");
 		printf("----------------------------------\n");
 		printf("opt omega = %f\n",omega);
 	}
 	else{
-		 printf("Conjugate Gradient Poisson Solver\n"); 
+		 printf("\nConjugate Gradient Poisson Solver\n"); 
 		 printf("----------------------------------\n");
 	}
 	printf("N = %d\n",N_ln);
@@ -179,7 +197,7 @@ double SOR(double omega)
 	return residual;
 }
 
-double CG()
+double CG(double *d_u,double *d_p,double *d_r,double *d_Ap)
 {
 	double pAp = 0.0;	// p*A*p
 	double alpha = 0.0;	// for update x (u) 
@@ -188,8 +206,8 @@ double CG()
 	double rr1 = 0.0;	// new r*r
 	double err = 0.0;
 	
-// GPU start
-        double *d_u, *d_p, *d_r, *d_Ap;
+// GPU start (A.p)
+       /*double *d_u, *d_p, *d_r, *d_Ap;
 
      // allocate device memory
         cudaMalloc( &d_u, (N*N)*sizeof(double) );
@@ -202,13 +220,11 @@ double CG()
         cudaMemcpy( d_p, p, (N*N)*sizeof(double), cudaMemcpyHostToDevice );
         cudaMemcpy( d_r, r, (N_ln*N_ln)*sizeof(double), cudaMemcpyHostToDevice );
         //cudaMemcpy( d_Ap, Ap, (N_ln*N_ln)*sizeof(double), cudaMemcpyHostToDevice );
-
+        */
      // execute the GPU kernel
-	//inner_product1_GPU <<< NBlock, NThread_Per_Block >>> (rr0, d_r, d_r, N, N_ln);
         laplacian_GPU <<< dimGrid, dimBlock >>> (d_Ap, d_p, dx, dy, N, N_ln);
-	//inner_product2_GPU <<< dimGrid, dimBlock >>> (pAp, p, Ap, N, N_ln);
-
-        // error handling
+        
+	// error handling
         cudaError_t ErrGPU = cudaGetLastError();
         if ( ErrGPU != cudaSuccess )
         {
@@ -218,18 +234,18 @@ double CG()
 
      // transfer data from GPU to CPU
         cudaMemcpy( Ap, d_Ap, (N_ln*N_ln)*sizeof(double), cudaMemcpyDeviceToHost );
-// GPU end
+// GPU end(A.p)
 		
 	rr0 = inner_product(r,r,0,N,N_ln);
         pAp = inner_product(p,Ap,1,N,N_ln);      // pAp
 	alpha = rr0/pAp;	
 	
-// GPU start
+// GPU start (rr0 & pAp)
         // execute the GPU kernel
 	
         YPEAX_GPU <<< NBlock, NThread_Per_Block >>> (d_u, d_p, alpha, N);               // update u
         YPEAX_GPU <<< NBlock, NThread_Per_Block >>> (d_r, d_Ap, -alpha, N_ln);          // update r
-	//inner_product1_GPU <<< NBlock, NThread_Per_Block >>> (rr1, d_r, d_r, N, N_ln);
+
 	// error handling
         ErrGPU = cudaGetLastError();
         if ( ErrGPU != cudaSuccess )
@@ -239,16 +255,14 @@ double CG()
         }
 
         // transfer data from GPU to CPU
-        cudaMemcpy( u, d_u, (N*N)*sizeof(double), cudaMemcpyDeviceToHost );
+        //cudaMemcpy( u, d_u, (N*N)*sizeof(double), cudaMemcpyDeviceToHost );
         cudaMemcpy( r, d_r, (N_ln*N_ln)*sizeof(double), cudaMemcpyDeviceToHost );
-// GPU end
+// GPU end (rr0 & pAp)
 
 	rr1 = inner_product(r,r,0,N,N_ln);
 	beta = rr1/rr0;
-	//YEAYPX(p,r,beta,N,N_ln);        // update p
-
-// GPU start
-
+	
+// GPU start (update p)
 	// execute the GPU kernel	
 	YEAYPX_GPU <<< dimGrid, dimBlock >>> (d_p, d_r, beta, N, N_ln);
 	// error handling
@@ -261,16 +275,11 @@ double CG()
 
 	// transfer data from GPU to CPU
         cudaMemcpy( p, d_p, (N*N)*sizeof(double), cudaMemcpyDeviceToHost );	
-// GPU end
+// GPU end (update p)
 
 	rr0 = rr1;
 	err = sqrt(rr1/bb);
-	
-	cudaFree( d_u );
-        cudaFree( d_p );
-        cudaFree( d_r );
-        cudaFree( d_Ap );
-	
+
 	return err ;
 }
 
