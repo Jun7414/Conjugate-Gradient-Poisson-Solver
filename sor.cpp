@@ -3,8 +3,8 @@ double SOR(double omega)
 	double residual = 0.0;
 	double dd = 0.0;
 
-	// odd loop
-	#pragma omp parallel for
+// odd loop
+#pragma omp parallel for
 	for (int i = 0; i < N_ln; i++)
 	{
 		double tmp_residual = 0.0;
@@ -19,14 +19,14 @@ double SOR(double omega)
 			tmp_d += fabs(d[N_ln * i + j]);
 		}
 
-		#pragma omp critical
+#pragma omp critical
 		residual += tmp_residual;
 		dd += tmp_d;
 		//printf( "loop %d is computed by thread %d/%d\n", itr, tid, nt );
 	}
 
-	// even loop
-	#pragma omp parallel for
+// even loop
+#pragma omp parallel for
 	for (int i = 0; i < N_ln; i++)
 	{
 		double tmp_residual = 0.0;
@@ -40,8 +40,8 @@ double SOR(double omega)
 			tmp_residual += fabs(dx * dy * psy);
 			tmp_d += fabs(d[N_ln * i + j]);
 		}
-		
-		#pragma omp critical
+
+#pragma omp critical
 		residual += tmp_residual;
 		dd += tmp_d;
 		//printf( "loop %d is computed by thread %d/%d\n", itr, tid, nt );
