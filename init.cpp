@@ -125,11 +125,8 @@ void point_source(double *d, int N_ln)
         }
     }
 */
-<<<<<<< HEAD
+
 /*    for( int i = 1; i < N_ln; i++ )
-=======
-    /*for( int i = 1; i < N_ln; i++ )
->>>>>>> dev-daniel
     {
         for( int j = 0; j < N_ln; j++ )
         {
