@@ -1,3 +1,4 @@
 main
 Makefile
-./output/*.jpg
+output/*.jpg
+output/*.txt

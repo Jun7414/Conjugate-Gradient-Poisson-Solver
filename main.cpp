@@ -1,10 +1,3 @@
-/*
- Poisson solver with CG, SOR
- Before Compile : make clean
- Compile with : g++ -fopenmp main.cpp -o main
- Run with ./main --[Method] [Num of Threads]
- Exmaple : Run CG with 4 threads ./main --CG 4 -n 1024
-*/
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
