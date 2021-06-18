@@ -11,18 +11,15 @@ double CG()
 	laplacian(Ap, p, dx, dy, N, N_ln);		// A.p
 	pAp = inner_product(p, Ap, 1, N, N_ln); 	// pAp
 	alpha = rr0 / pAp;
-
+	
 	YPEAX(u,p,alpha,N);		// update u 
 	YPEAX(r,Ap,-alpha,N_ln);	// update r
-
+	
 	rr1 = inner_product(r, r, 0, N, N_ln);
 	beta = rr1 / rr0;
-
 	YEAYPX(p,r,beta,N,N_ln);	// update p
-
+	
 	rr0 = rr1;
-
 	err = sqrt(rr1 / bb);
-
 	return err;
 }
