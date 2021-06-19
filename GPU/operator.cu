@@ -1,18 +1,29 @@
-/*#include "device_atomic_functions.h"
+#include "device_atomic_functions.h"
 __global__
 void inner_product1_GPU(double kk, double *a, double *b, int N, int N_ln)
 {
     kk = 0.0;
-    __shared__ double temp[128];
-    const int i = blockIdx.x*blockDim.x + threadIdx.x;
-   
-    //for ( i = 0; i < N_ln*N_ln; i++)
-    if (i < N_ln*N_ln)
-    temp[threadIdx.x] = a[i] * b[i];
+    double tmpSum = 0.0
 
-    __syncthreads();
-    //parallel reduction
-    //for (int j = threadIdx.x; j < N_ln*N_ln ; j += blockDim.x)
+    const int row = blockIdx.y*blockDim.y + threadIdx.y;
+    const int col = blockIdx.x*blockDim.x + threadIdx.x;
+
+    if( row < N_ln && col < N_ln )
+    {
+        for( int i = 0; i < N_ln; i++)
+        {
+            tmpSum += a[ row  * N + i] * b[ i * N + col ];
+        }
+        kk += tmpSum;
+    }
+   
+    // for ( i = 0; i < N_ln*N_ln; i++)
+    // if (i < N_ln*N_ln)
+    // temp[threadIdx.x] = a[i] * b[i];
+
+    // __syncthreads();
+    // parallel reduction
+    // for (int j = threadIdx.x; j < N_ln*N_ln ; j += blockDim.x)
 
     return;
 }
@@ -21,18 +32,28 @@ __global__
 void inner_product2_GPU(double kk, double *a, double *b, int N, int N_ln)
 {
     kk = 0.0;
-    __shared__ double temp[128];
-    const int i = blockIdx.x*blockDim.x + threadIdx.x;
-    const int j = blockIdx.y*blockDim.y + threadIdx.y;
+    double tmpSum = 0.0
 
-    //for ( i = 0; i < N_ln; i++)
-    //for ( j = 0; j < N_ln; j++)
-    if (i < N_ln && j < N_ln)
-    kk += a[N * (i + 1) + (j + 1)] * b[N_ln * i + j] 
+    const int row = blockIdx.x*blockDim.x + threadIdx.x;
+    const int col = blockIdx.y*blockDim.y + threadIdx.y;
+
+    if( row < N_ln && col < N_ln )
+    {
+        for( int i = 0; i < N_ln; i++)
+        {
+            tmpSum += a[ (row + 1) * N + ( i + 1 ) ] * b[ i * N_ln + col ];
+        }
+        kk += tmpSum;
+    }
+
+    // for ( i = 0; i < N_ln; i++)
+    // for ( j = 0; j < N_ln; j++)
+    // if (i < N_ln && j < N_ln)
+    // kk += a[N * (i + 1) + (j + 1)] * b[N_ln * i + j] 
    
     return;
 }
-*/
+
 __global__
 void laplacian_GPU(double *La, double *x, double dx, double dy, int N, int N_ln)
 {
