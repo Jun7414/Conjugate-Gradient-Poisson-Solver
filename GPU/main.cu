@@ -220,13 +220,14 @@ double CG(double *d_u, double *d_p, double *d_r, double *d_Ap)
 	double rr0 = 0.0;	// old r*r
 	double rr1 = 0.0;	// new r*r
 	double err = 0.0;
+	double *d_pAp, *d_rr1, *d_rr0;
 
 	cudaMalloc( &d_pAp, sizeof(double) );
     cudaMalloc( &d_rr1, sizeof(double) );
 	cudaMalloc( &d_rr0, sizeof(double) );
-	cudaMemcpy( d_rr0, pAp, sizeof(double), cudaMemcpyHostToDevice );
-	cudaMemcpy( d_rr0, rr0, sizeof(double), cudaMemcpyHostToDevice );
-    cudaMemcpy( d_rr1, rr1, sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_pAp, &pAp, sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_rr0, &rr0, sizeof(double), cudaMemcpyHostToDevice );
+    cudaMemcpy( d_rr1, &rr1, sizeof(double), cudaMemcpyHostToDevice );
 
 
 	// execute the GPU kernel
@@ -246,8 +247,8 @@ double CG(double *d_u, double *d_p, double *d_r, double *d_Ap)
 	inner_product1_GPU<<<dimGrid, dimBlock>>>( d_rr0, d_r, d_r, N, N_ln);
 	inner_product2_GPU<<<dimGrid, dimBlock>>>( d_pAp, d_p, d_Ap, N, N_ln); // pAp
 	
-	cudaMemcpy( rr0, d_rr0, sizeof(double), cudaMemcpyDeviceToHost );
-	cudaMemcpy( pAp, d_pAp, sizeof(double), cudaMemcpyDeviceToHost );
+	cudaMemcpy( &rr0, d_rr0, sizeof(double), cudaMemcpyDeviceToHost );
+	cudaMemcpy( &pAp, d_pAp, sizeof(double), cudaMemcpyDeviceToHost );
 	
 	alpha = rr0 / pAp;
 
@@ -271,7 +272,7 @@ double CG(double *d_u, double *d_p, double *d_r, double *d_Ap)
 	// GPU end (rr0 & pAp)
 
 	inner_product1_GPU<<<dimGrid, dimBlock>>>( d_rr1, d_r, d_r, N, N_ln);
-	cudaMemcpy( rr1, d_rr1, sizeof(double), cudaMemcpyDeviceToHost );
+	cudaMemcpy( &rr1, d_rr1, sizeof(double), cudaMemcpyDeviceToHost );
 	beta = rr1 / rr0;
 
 	// GPU start (update p)

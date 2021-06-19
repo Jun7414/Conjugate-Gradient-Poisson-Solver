@@ -1,9 +1,9 @@
 #include "device_atomic_functions.h"
 __global__
-void inner_product1_GPU(double kk, double *a, double *b, int N, int N_ln)
+void inner_product1_GPU(double *kk, double *a, double *b, int N, int N_ln)
 {
-    kk = 0.0;
-    double tmpSum = 0.0
+    *kk = 0.0;
+    double tmpSum = 0.0;
 
     const int row = blockIdx.y*blockDim.y + threadIdx.y;
     const int col = blockIdx.x*blockDim.x + threadIdx.x;
@@ -12,9 +12,9 @@ void inner_product1_GPU(double kk, double *a, double *b, int N, int N_ln)
     {
         for( int i = 0; i < N_ln; i++)
         {
-            tmpSum += a[ row  * N + i] * b[ i * N + col ];
+            tmpSum += a[ row  * N_ln + i] * b[ i * N_ln + col ];
         }
-        kk += tmpSum;
+        *kk += tmpSum;
     }
    
     // for ( i = 0; i < N_ln*N_ln; i++)
@@ -29,10 +29,10 @@ void inner_product1_GPU(double kk, double *a, double *b, int N, int N_ln)
 }
 
 __global__
-void inner_product2_GPU(double kk, double *a, double *b, int N, int N_ln)
+void inner_product2_GPU(double *kk, double *a, double *b, int N, int N_ln)
 {
-    kk = 0.0;
-    double tmpSum = 0.0
+    *kk = 0.0;
+    double tmpSum = 0.0;
 
     const int row = blockIdx.x*blockDim.x + threadIdx.x;
     const int col = blockIdx.y*blockDim.y + threadIdx.y;
@@ -43,7 +43,7 @@ void inner_product2_GPU(double kk, double *a, double *b, int N, int N_ln)
         {
             tmpSum += a[ (row + 1) * N + ( i + 1 ) ] * b[ i * N_ln + col ];
         }
-        kk += tmpSum;
+        *kk += tmpSum;
     }
 
     // for ( i = 0; i < N_ln; i++)
