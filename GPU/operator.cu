@@ -1,4 +1,4 @@
-#include "device_atomic_functions.h"
+/*#include "device_atomic_functions.h"
 __global__
 void inner_product1_GPU(double *kk, double *a, double *b, int N, int N_ln)
 {
@@ -52,7 +52,7 @@ void inner_product2_GPU(double *kk, double *a, double *b, int N, int N_ln)
     // kk += a[N * (i + 1) + (j + 1)] * b[N_ln * i + j] 
    
     return;
-}
+}*/
 
 __global__
 void laplacian_GPU(double *La, double *x, double dx, double dy, int N, int N_ln)
@@ -94,20 +94,19 @@ void YEAYPX_GPU(double *y, double *x, double a, int N, int N_ln) // Y = a*Y + X
 double inner_product(double *a, double *b, int type, int N, int N_ln)
 {
     double kk = 0.0;
-    int i, j;
 
     if (type == 0)
     { // for N_ln^2 * N_ln^2
-        for ( i = 0; i < N_ln * N_ln; i++)
+        for ( int i = 0; i < N_ln * N_ln; i++)
         {
             kk += a[i] * b[i];
         }
     }
     else
     { // for N^2 * N_ln^2
-        for ( i = 0; i < N_ln; i++)
+        for ( int i = 0; i < N_ln; i++)
         {
-            for ( j = 0; j < N_ln; j++)
+            for ( int j = 0; j < N_ln; j++)
             {
                 kk += a[N * (i + 1) + (j + 1)] * b[N_ln * i + j];
             }
